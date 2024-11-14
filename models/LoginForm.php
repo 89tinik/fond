@@ -15,7 +15,6 @@ class LoginForm extends Model
 {
     public $username;
     public $password;
-    public $rememberMe = true;
 
     private $_user = false;
 
@@ -27,11 +26,21 @@ class LoginForm extends Model
     {
         return [
             // username and password are both required
-            [['username', 'password'], 'required'],
-            // rememberMe must be a boolean value
-            ['rememberMe', 'boolean'],
+            [['username'], 'required', 'message' => 'Пожалуйста, введите корректный номер телефона.'],
+            [['password'], 'required', 'message' => 'Пожалуйста, введите пароль.'],
             // password is validated by validatePassword()
             ['password', 'validatePassword'],
+        ];
+    }
+
+    /**
+     * Метки атрибутов
+     */
+    public function attributeLabels()
+    {
+        return [
+            'username' => 'Телефон',
+            'password' => 'Пароль',
         ];
     }
 
@@ -48,7 +57,7 @@ class LoginForm extends Model
             $user = $this->getUser();
 
             if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+                $this->addError($attribute, 'Неверный пароль.');
             }
         }
     }
@@ -60,7 +69,7 @@ class LoginForm extends Model
     public function login()
     {
         if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
+            return Yii::$app->user->login($this->getUser(), 3600 * 24 * 30 * 12);
         }
         return false;
     }
@@ -73,7 +82,7 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
+            $this->_user = User::findOne(['phone' => $this->username]);
         }
 
         return $this->_user;
