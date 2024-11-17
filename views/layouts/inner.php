@@ -20,6 +20,13 @@ $this->registerMetaTag(['name' => 'viewport', 'content' => 'width=device-width, 
 $this->registerMetaTag(['name' => 'description', 'content' => $this->params['meta_description'] ?? '']);
 $this->registerMetaTag(['name' => 'keywords', 'content' => $this->params['meta_keywords'] ?? '']);
 $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii::getAlias('@web/favicon.ico')]);
+
+$menuItems = [
+    ['label' => 'Конкурсы', 'url' => ['/']],
+    ['label' => 'Личные данные', 'url' => ['site/lk']],
+    ['label' => 'Мои заявки', 'url' => ['application/index']],
+    ['label' => 'Контакты', 'url' => ['site/contact']],
+];
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -30,6 +37,29 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 </head>
 <body >
 <?php $this->beginBody() ?>
+<nav class="navbar navbar-expand-lg navbar-light d-md-none">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="/images/logow.png" alt="Логотип">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <?= Menu::widget([
+                'items' => $menuItems,
+                'options' => [
+                    'class' => 'navbar-nav',
+                ],
+                'itemOptions'=>['class'=>'nav-item'],
+                'activeCssClass'=>'active',
+                'linkTemplate'=>'<a href="{url}" class="nav-link">{label}</a>',
+            ]);
+            ?>
+
+        </div>
+    </div>
+</nav>
 <div class="container-fluid">
     <div class="row">
         <!-- Левый сайдбар -->
@@ -44,12 +74,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
 
 
                 <?= Menu::widget([
-                'items' => [
-                ['label' => 'Конкурсы', 'url' => ['/']],
-                ['label' => 'Личные данные', 'url' => ['site/lk']],
-                ['label' => 'Мои заявки', 'url' => ['application/index']],
-                ['label' => 'Контакты', 'url' => ['site/contact']],
-                ],
+                'items' => $menuItems,
                     'options' => [
                         'class' => 'nav flex-column',
                     ],

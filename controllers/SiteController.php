@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\Contests;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -19,7 +20,10 @@ class SiteController extends BaseController
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $typeArr = Contests::find()->asArray()->all();
+        return $this->render('index', [
+            'typeArr' => $typeArr,
+        ]);
     }
 
     /**

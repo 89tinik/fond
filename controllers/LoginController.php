@@ -73,44 +73,4 @@ class LoginController extends Controller
         return $this->redirect('/login');
     }
 
-
-    public function actionInformation()
-    {
-        return $this->render('information');
-    }
-
-    public function actionAll()//удалить после разработки
-    {
-        //var_dump(User::showAll());
-        die();
-    }
-
-    protected function generateFormNew($type)
-    {
-        $registerForm = new RegisterForm();
-        if ($registerForm->load(Yii::$app->request->post())) {
-
-            if ($registerForm->validate()) {
-                $register = $registerForm->Registrnew($type);
-                if ($register['uMethod']) {
-                    $this->redirect('/verification');
-                } else {
-                    if (is_array($register['error'])){
-                        $message = $register['error']['Message'];
-                    } else {
-                        $message = $register['error'];
-                    }
-                    $message = ($type == 'new') ? 'Ошибка регистрации!!!' . '<br/>' . $message : 'Ошибка восстановления пароля!!!' . '<br/>' . $message;
-                    Yii::$app->session->setFlash('error', $message);
-                }
-            } else {
-                Yii::$app->session->setFlash('error', 'Ошибка валидации!!!');
-            }
-        }
-        if (is_null($registerForm->method)) {
-            $registerForm->method = 0;
-        }
-
-        return $registerForm;
-    }
 }

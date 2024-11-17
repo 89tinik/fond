@@ -1,45 +1,38 @@
 <?php
 
 /** @var yii\web\View $this */
+/** @var app\models\Applications[] $draftApplications */
+/** @var app\models\Applications[] $sendApplications */
+
+use yii\helpers\Url;
 
 $this->title = 'Мои заявки';
 ?>
-<!-- Секция Черновики -->
-<h4 class="section-title">Черновики</h4>
+<?php if (!empty($draftApplications)): ?>
+    <h4 class="section-title">Черновики</h4>
+    <?php foreach ($draftApplications as $dApp) : ?>
+    <?php $url = Url::to(['application/update', 'id' => $dApp->id])?>
+        <div class="application-block" onclick="location.href='<?= $url ?>';">
+            <div class="application-info">
+                <h6><?= $dApp->contest->name ?> | <?= $dApp->id ?></h6>
+                <span>Дата изменения: <?= date('d.m.Y', strtotime($dApp->updated_at)) ?></span>
+            </div>
+            <button class="delete-btn">Удалить</button>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
 
-<!-- Черновик заявки -->
-<div class="application-block" onclick="location.href='#';">
-    <div class="application-info">
-        <h6>Археология</h6>
-        <span>Дата изменения: 14.10.2024</span>
-    </div>
-    <button class="delete-btn">Удалить</button>
-</div>
+<?php if (!empty($sendApplications)): ?>
+    <h4 class="section-title">Отправленные заявки</h4>
 
-<!-- Пример ещё одного черновика заявки -->
-<div class="application-block" onclick="location.href='#';">
-    <div class="application-info">
-        <h6>Видеоконтент</h6>
-        <span>Дата изменения: 13.10.2024</span>
-    </div>
-    <button class="delete-btn">Удалить</button>
-</div>
+    <?php foreach ($draftApplications as $dApp) : ?>
+        <?php $url = Url::to(['application/view', 'id' => $dApp->id])?>
+        <div class="application-block" onclick="location.href='<?=$url?>';">
+            <div class="application-info">
+                <h6><?= $dApp->contest->name ?></h6>
+                <span>Дата отправки: <?= date('d.m.Y', strtotime($dApp->updated_at)) ?></span>
+            </div>
+        </div>
 
-<!-- Секция Отправленные заявки -->
-<h4 class="section-title">Отправленные заявки</h4>
-
-<!-- Отправленная заявка -->
-<div class="application-block" onclick="location.href='#';">
-    <div class="application-info">
-        <h6>Выставки</h6>
-        <span>Дата отправки: 12.10.2024</span>
-    </div>
-</div>
-
-<!-- Пример ещё одной отправленной заявки -->
-<div class="application-block" onclick="location.href='#';">
-    <div class="application-info">
-        <h6>Мероприятия</h6>
-        <span>Дата отправки: 10.10.2024</span>
-    </div>
-</div>
+    <?php endforeach; ?>
+<?php endif; ?>
