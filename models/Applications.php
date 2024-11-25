@@ -19,6 +19,21 @@ use Yii;
  */
 class Applications extends \yii\db\ActiveRecord
 {
+
+    /**
+     * @param $contest
+     * @param $config
+     */
+    public function __construct($contest = null, $config = [])
+    {
+        parent::__construct($config);
+
+        if ($contest !== null) {
+            $this->contest_id = $contest;
+        }
+        $this->user_id = Yii::$app->user->id;
+    }
+
     /**
      * {@inheritdoc}
      */

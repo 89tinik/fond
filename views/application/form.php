@@ -34,10 +34,56 @@ foreach ($sections as $section) {
                     ->dropDownList($optionArr, ['name' => $fieldName, 'value' => $fieldValue])
                     ->label($fieldLabel);
                 break;
+            case 'file':
+                if ($field->multi == 1) {
+                    $formFields .= $form->field($formModel, "fields[$fieldId]", [
+                        'template' => '{label}<div id="uploaded-fields-' . $fieldId . '-list">' .
+                            $this->render('uploadedFiles', ['files' => $fieldValue, 'fieldId' => $fieldId]) .
+                            '</div>{input}<div id="applicationsform-fields-' . $fieldId . '-list"></div>{error}',
+                    ])->fileInput(['name' => $fieldName, 'class' => 'multifile'])
+                        ->label($fieldLabel);
+
+                } else {
+                    $formFields .= $form->field($formModel, "fields[$fieldId]",)
+                        ->fileInput(['name' => $fieldName, 'value' => $fieldValue])
+                        ->label($fieldLabel);
+                }
+                break;
             default:
-                $formFields .= $form->field($formModel, "fields[$fieldId]")
-                    ->textInput(['name' => $fieldName, 'value' => $fieldValue])
-                    ->label($fieldLabel);
+                if ($field->multi == 1) {
+                    $valueArr = json_decode($fieldValue, true) ?? [''];
+
+                    $first = true;
+                    foreach ($valueArr as $value) {
+                        if ($first) {
+                            $formFields .= '<div class="mb-3">';
+                            $formFields .= Html::label($fieldLabel, $fieldId, ['class' => 'form-label']);
+                            $formFields .= '<div id="fieldsList_' . $fieldId . '">';
+                        }
+                        $formFields .= $form->field($formModel, "fields[$fieldId][]", [
+                            'template' => '{input}{error}',
+                        ])->textInput([
+                            'class' => 'form-control mb-2',
+                            'placeholder' => $fieldLabel,
+                            'value' => $value
+                        ])->label(false);
+
+                        $first = false;
+                    }
+                    $formFields .= '</div>';
+
+                    $formFields .= Html::button('Добавить ещё', [
+                        'type' => 'button',
+                        'class' => 'btn btn-link',
+                        'onclick' => "addField('fieldsList_{$fieldId}', '{$fieldLabel}', '{$fieldId}')"
+                    ]);
+                    $formFields .= '</div>';
+
+                } else {
+                    $formFields .= $form->field($formModel, "fields[$fieldId]")
+                        ->textInput(['name' => $fieldName, 'value' => $fieldValue])
+                        ->label($fieldLabel);
+                }
                 break;
         }
     endforeach;
@@ -55,8 +101,8 @@ foreach ($sections as $section) {
     }
 
     $formFields .= '<div class="d-flex justify-content-between">
-        <div>' . $prevBtn . $nextBtn . '</div>'.
-        Html::submitButton('Сохранить', ['class' => 'btn btn-primary']) .
+        <div>' . $prevBtn . $nextBtn . '</div>' .
+        Html::button('Сохранить', ['class' => 'btn btn-primary', 'onclick' => 'saveDraft()']) .
         '</div>';
     $formFields .= '</div>';
     $sectionNumber = $nextIndex;

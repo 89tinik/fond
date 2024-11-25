@@ -34,9 +34,9 @@ class Fields extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['section_id', 'position'], 'integer'],
+            [['section_id', 'position', 'multi'], 'integer'],
             [['name', 'label'], 'required'],
-            [['options'], 'string'],
+            [['options', 'b24entity'], 'string'],
             [['name', 'label', 'type'], 'string', 'max' => 255],
             [['section_id'], 'exist', 'skipOnError' => true, 'targetClass' => Sections::class, 'targetAttribute' => ['section_id' => 'id']],
         ];
@@ -53,7 +53,9 @@ class Fields extends \yii\db\ActiveRecord
             'name' => 'Name',
             'label' => 'Label',
             'type' => 'Type',
+            'multi' => 'Multi',
             'options' => 'Options',
+            'b24entity' => 'B24entity',
             'position' => 'Position',
         ];
     }

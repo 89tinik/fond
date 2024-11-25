@@ -23,6 +23,7 @@ class AppAsset extends AssetBundle
         'css/styles.css',
     ];
     public $js = [
+        'https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js',
         'js/script.js',
     ];
     public $depends = [
