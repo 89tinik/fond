@@ -174,7 +174,8 @@ class ApplicationController extends BaseController
         if (isset($response['result'])) {
             return 'Сделка успешно создана в Битрикс24.';
         } else {
-            return 'Ошибка при создании сделки: ';
+            $responseP = print_r($response, 1);
+            return 'Ошибка при создании сделки: ' . $responseP;
         }
     }
     public function actionCreateBitrixOld()
