@@ -9,6 +9,7 @@ class ApplicationsForm extends Model
     public $fields = [];
     public $contestId;
     public $new;
+    public $sendB24;
 
     /**
      * @param int $contestId

@@ -31,6 +31,7 @@ class Contests extends \yii\db\ActiveRecord
         return [
             [['name'], 'required'],
             [['name'], 'string', 'max' => 255],
+            [['typeB24Id'], 'integer'],
         ];
     }
 
@@ -42,6 +43,7 @@ class Contests extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Name',
+            'typeB24Id' => 'B24 category',
         ];
     }
 

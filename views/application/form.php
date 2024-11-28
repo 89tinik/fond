@@ -13,7 +13,7 @@ $navigation = '';
 $formFields = '';
 ?>
 <?php $form = ActiveForm::begin(['id' => 'application-form']); ?>
-
+<?=  $form->field($formModel, "sendB24", ['template' => '{input}'])->hiddenInput(['value'=>'0'])?>
 <?php
 $sectionNumber = 1;
 $class = 'active';
@@ -102,7 +102,8 @@ foreach ($sections as $section) {
 
     $formFields .= '<div class="d-flex justify-content-between">
         <div>' . $prevBtn . $nextBtn . '</div>' .
-        Html::button('Сохранить', ['class' => 'btn btn-primary', 'onclick' => 'saveDraft()']) .
+        Html::button('Сохранить', ['class' => 'btn btn-primary', 'onclick' => 'saveDraft(false)']) .
+        Html::button('Отправить', ['class' => 'btn btn-primary', 'onclick' => 'saveDraft(true)']) .
         '</div>';
     $formFields .= '</div>';
     $sectionNumber = $nextIndex;

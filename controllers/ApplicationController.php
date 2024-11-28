@@ -30,7 +30,7 @@ class ApplicationController extends BaseController
     }
 
     /**
-     * @return string
+     * @return Response | string
      */
     public function actionCreate($type)
     {
@@ -96,6 +96,9 @@ class ApplicationController extends BaseController
 
             if ($formModel->load(Yii::$app->request->post()) && $formModel->validate()) {
                 if (ApplicationValue::loadFields($formData['fields'], $application->id, $existingValues)) {
+                    if ($formData['sendB24']) {
+                        return $this->redirect(['application/create-bitrix', 'id' => $id]);
+                    }
                     Yii::$app->session->setFlash('success', 'Заявка успешно обновлена!');
                     return $this->refresh();
                 }
@@ -109,8 +112,70 @@ class ApplicationController extends BaseController
         ]);
     }
 
-    public function actionCreateBitrix()
+    public function actionCreateBitrix($id)
     {
+        $application = Applications::findOne($id);
+
+
+        $existingValues = ApplicationValue::find()
+            ->where(['application_id' => $application->id])
+            ->indexBy('field_id')
+            ->all();
+
+        $data = [];
+        foreach ($existingValues as $fieldValue) {
+            switch ($fieldValue->field->type) {
+                case 'file':
+                    if ($fieldValue->field->multi) {
+                        $filesArrValue = json_decode($fieldValue->value, true);
+                        $filesArray = [];
+                        foreach ($filesArrValue as $file) {
+                            if ($file) {
+                                $filesArray[] = [
+                                    "fileData" => [
+                                        basename($file),
+                                        base64_encode(file_get_contents($file))
+                                    ]
+                                ];
+                            }
+                        }
+                        if (!empty($filesArray)) {
+                            $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = $filesArray;
+                        }
+                    }
+                    break;
+                case 'text':
+                    if ($fieldValue->field->multi) {
+                        $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = json_decode($fieldValue->value, 1);
+                    } else {
+                        $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = $fieldValue->value;
+                    }
+                    break;
+            }
+        }
+
+        $bitrixDealUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.deal.add';
+        $bitrixContactUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.contact.add';
+        $bitrixCompanyUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.company.add';
+        $data['deal']['fields']['CATEGORY_ID'] = $application->contest->typeB24Id;
+
+        $responseContact = $this->sendRequest($bitrixContactUrl, $data['contact']);
+        $responseCompany = $this->sendRequest($bitrixCompanyUrl, $data['contact']);
+
+        $data['deal']['fields']['CONTACT_ID'] = $responseContact['result'];
+        $data['deal']['fields']['COMPANY_ID'] = $responseCompany['result'];
+        
+         $response = $this->sendRequest($bitrixDealUrl, $data['deal']);
+
+        if (isset($response['result'])) {
+            return 'Сделка успешно создана в Битрикс24.';
+        } else {
+            return 'Ошибка при создании сделки: ';
+        }
+    }
+    public function actionCreateBitrixOld()
+    {
+
         $model = new BitrixForm();
 
         if (Yii::$app->request->isPost) {
@@ -124,7 +189,7 @@ class ApplicationController extends BaseController
                     'fields' => [
                         'TITLE' => $model->title,
                         'CATEGORY_ID' => $model->category_id,
-                        'UF_CRM_DEAL_1690807644497' => $model->uf_crm_deal_1690807644497,
+                        'uf_crm_deal_1690807644497' => $model->uf_crm_deal_1690807644497,
                     ],
                 ];
 

@@ -77,7 +77,10 @@ function removeFile(inputId, index) {
     }
 }
 
-function saveDraft() {
+function saveDraft(sendB24) {
+    if (sendB24){
+        $('#applicationsform-sendb24').val('1');
+    }
     Cookies.set('tab', $('#form-navigation .active').index());
     const formData = new FormData();
     const currentUrl = window.location.href;
