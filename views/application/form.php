@@ -81,7 +81,7 @@ foreach ($sections as $section) {
 
                 } else {
                     $formFields .= $form->field($formModel, "fields[$fieldId]")
-                        ->textInput(['name' => $fieldName, 'value' => $fieldValue])
+                        ->input($field->type,['name' => $fieldName, 'value' => $fieldValue])
                         ->label($fieldLabel);
                 }
                 break;

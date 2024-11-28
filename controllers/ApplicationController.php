@@ -21,8 +21,8 @@ class ApplicationController extends BaseController
      */
     public function actionIndex()
     {
-        $draftApplications = Applications::find()->where(['status' => 'draft'])->all();
-        $sendApplications = Applications::find()->where(['status' => 'send'])->all();
+        $draftApplications = Applications::find()->where(['status' => 'draft', 'user_id'=>Yii::$app->user->id])->all();
+        $sendApplications = Applications::find()->where(['status' => 'send', 'user_id'=>Yii::$app->user->id])->all();
         return $this->render('index', [
             'draftApplications' => $draftApplications,
             'sendApplications' => $sendApplications
@@ -144,7 +144,7 @@ class ApplicationController extends BaseController
                         }
                     }
                     break;
-                case 'text':
+                default :
                     if ($fieldValue->field->multi) {
                         $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = json_decode($fieldValue->value, 1);
                     } else {
@@ -159,11 +159,15 @@ class ApplicationController extends BaseController
         $bitrixCompanyUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.company.add';
         $data['deal']['fields']['CATEGORY_ID'] = $application->contest->typeB24Id;
 
-        $responseContact = $this->sendRequest($bitrixContactUrl, $data['contact']);
-        $responseCompany = $this->sendRequest($bitrixCompanyUrl, $data['contact']);
+        if (isset( $data['contact'])){
+            $responseContact = $this->sendRequest($bitrixContactUrl, $data['contact']);
+            $data['deal']['fields']['CONTACT_ID'] = $responseContact['result'];
+        }
+        if (isset( $data['contact'])) {
+            $responseCompany = $this->sendRequest($bitrixCompanyUrl, $data['company']);
+            $data['deal']['fields']['COMPANY_ID'] = $responseCompany['result'];
+        }
 
-        $data['deal']['fields']['CONTACT_ID'] = $responseContact['result'];
-        $data['deal']['fields']['COMPANY_ID'] = $responseCompany['result'];
         
          $response = $this->sendRequest($bitrixDealUrl, $data['deal']);
 
