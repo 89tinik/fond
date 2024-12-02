@@ -20,7 +20,7 @@ class m241116_113249_create_applications_table extends Migration
             'id' => $this->primaryKey(),
             'contest_id' => $this->integer(),
             'user_id' => $this->integer(),
-            'status' => "ENUM('draft', 'submitted', 'reviewed', 'accepted', 'rejected') DEFAULT 'draft'",
+            'status' => "ENUM('draft', 'send') DEFAULT 'draft'",
             'created_at' => $this->timestamp()->defaultExpression('CURRENT_TIMESTAMP'),
             'updated_at' => $this->timestamp()->defaultExpression('CURRENT_TIMESTAMP')->append('ON UPDATE CURRENT_TIMESTAMP'),
         ], $tableOptions);

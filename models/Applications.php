@@ -48,7 +48,7 @@ class Applications extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['contest_id', 'user_id'], 'integer'],
+            [['contest_id', 'user_id', 'company_id'], 'integer'],
             [['status'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['contest_id'], 'exist', 'skipOnError' => true, 'targetClass' => Contests::class, 'targetAttribute' => ['contest_id' => 'id']],
@@ -88,5 +88,15 @@ class Applications extends \yii\db\ActiveRecord
     public function getContest()
     {
         return $this->hasOne(Contests::class, ['id' => 'contest_id']);
+    }
+
+    /**
+     * Gets query for [[Section]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCompany()
+    {
+        return $this->hasOne(Companies::class, ['id' => 'company_id']);
     }
 }

@@ -179,8 +179,13 @@ a:hover {
     transition: background-color 0.3s ease;
 }
 
+.delete-btn{
+    text-decoration: none;
+}
+
 .delete-btn:hover {
     background-color: #c82333;
+    color:#ffffff;
 }
 
 .form-section {

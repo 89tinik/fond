@@ -36,7 +36,7 @@ class m241122_132250_insert_data_field_table_for_online extends Migration
             $sections[1] => [
                 ['name' => 'TITLE', 'label' => 'Наименование соискателя', 'type' => 'text', 'b24entity' => 'company'],
                 ['name' => 'UF_CRM_DEAL_1690807644497', 'label' => 'Название проекта', 'type' => 'text'],
-                ['name' => 'UF_CRM_1700121985', 'label' => 'Приоритетная тематика', 'type' => 'select', 'options' => '["\u0422\u0435\u043c\u0430\u0442\u0438\u043a\u0430 1", "\u0422\u0435\u043c\u0430\u0442\u0438\u043a\u0430 2", "\u0422\u0435\u043c\u0430\u0442\u0438\u043a\u0430 3"]'],
+                ['name' => 'UF_CRM_1700121985', 'label' => 'Приоритетная тематика', 'type' => 'select', 'options' => '{"1328": "\u041c\u043e\u043d\u043e\u043c\u0430\u0445","1329": "\u043d\u0435\u0437\u043d\u0430\u044e"}'],
             ],
             $sections[2] => [
                 ['name' => 'UF_CRM_DEAL_1690892312034', 'label' => 'Полное наименование соискателя (в строгом соответствии со свидетельством о внесении записи в ЕГРЮЛ)', 'type' => 'text'],

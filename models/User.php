@@ -22,8 +22,8 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             [['firstname', 'surname', 'lastname', 'auth_key', 'password_hash', 'email', 'phone', 'created_at'], 'required'],
-            [['created_at'], 'integer'],
-            [['firstname', 'surname', 'lastname', 'password_hash', 'email', 'phone'], 'string', 'max' => 255],
+            [['created_at', 'b24Id'], 'integer'],
+            [['firstname', 'surname', 'lastname', 'password_hash', 'email', 'phone', 'post'], 'string', 'max' => 255],
             [['auth_key'], 'string', 'max' => 32],
             [['email'], 'unique'],
             [['phone'], 'unique'],
@@ -45,6 +45,8 @@ class User extends ActiveRecord implements IdentityInterface
             'email' => 'Email',
             'phone' => 'Phone',
             'created_at' => 'Created At',
+            'post' => 'Position',
+            'b24Id' => 'Id B24',
         ];
     }
 

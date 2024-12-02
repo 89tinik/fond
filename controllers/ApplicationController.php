@@ -6,9 +6,14 @@ use app\controllers\BaseController;
 use app\models\Applications;
 use app\models\ApplicationsForm;
 use app\models\ApplicationValue;
+use app\models\B24Data;
+use app\models\Companies;
 use app\models\Contests;
 use app\models\Sections;
+use app\models\User;
 use Yii;
+use yii\filters\VerbFilter;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\UploadedFile;
 use app\models\BitrixForm;
@@ -16,13 +21,29 @@ use app\models\BitrixForm;
 class ApplicationController extends BaseController
 {
 
+    public function behaviors()
+    {
+        return array_merge(
+            parent::behaviors(),
+            [
+                'verbs' => [
+                    'class' => VerbFilter::class,
+                    'actions' => [
+                        'delete' => ['POST'],
+                    ],
+                ],
+            ]
+        );
+    }
+
+
     /**
      * @return string
      */
     public function actionIndex()
     {
-        $draftApplications = Applications::find()->where(['status' => 'draft', 'user_id'=>Yii::$app->user->id])->all();
-        $sendApplications = Applications::find()->where(['status' => 'send', 'user_id'=>Yii::$app->user->id])->all();
+        $draftApplications = Applications::find()->where(['status' => 'draft', 'user_id' => Yii::$app->user->id])->all();
+        $sendApplications = Applications::find()->where(['status' => 'send', 'user_id' => Yii::$app->user->id])->all();
         return $this->render('index', [
             'draftApplications' => $draftApplications,
             'sendApplications' => $sendApplications
@@ -35,6 +56,7 @@ class ApplicationController extends BaseController
     public function actionCreate($type)
     {
         $appType = Contests::findOne($type);
+        $userCompanies = Companies::getCompaniesList();
 
         $sections = Sections::find()
             ->where(['contest_id' => $appType->id])
@@ -48,10 +70,14 @@ class ApplicationController extends BaseController
 
             if ($formModel->load(Yii::$app->request->post()) && $formModel->validate()) {
                 $application = new Applications($appType->id);
+                    $application->company_id = $formData['companyId'];
                 $application->save();
                 ApplicationValue::loadFields($formData['fields'], $application->id);
 
-                Yii::$app->session->setFlash('success', 'Форма успешно отправлена!');
+                //Yii::$app->session->setFlash('success', 'Форма успешно отправлена!');
+                if ($formData['sendB24']) {
+                    return $this->redirect(['application/create-bitrix', 'id' => $application->id]);
+                }
                 return $this->redirect(['application/update', 'id' => $application->id]);
             }
         }
@@ -59,13 +85,15 @@ class ApplicationController extends BaseController
         return $this->render('create', [
             'sections' => $sections,
             'formModel' => $formModel,
-            'type' => $appType
+            'type' => $appType,
+            'companies' => $userCompanies
         ]);
     }
 
     public function actionUpdate($id)
     {
         $application = Applications::findOne($id);
+        $userCompanies = Companies::getCompaniesList();
 
         if (!$application || $application->user_id !== Yii::$app->user->id) {
             throw new \yii\web\NotFoundHttpException('Заявка не найдена или доступ запрещен.');
@@ -78,7 +106,7 @@ class ApplicationController extends BaseController
             ->orderBy(['position' => SORT_ASC])
             ->all();
 
-        $formModel = new ApplicationsForm($application->contest_id);
+        $formModel = new ApplicationsForm($application->contest_id,$application->company_id);
 
         $existingValues = ApplicationValue::find()
             ->where(['application_id' => $application->id])
@@ -93,7 +121,8 @@ class ApplicationController extends BaseController
 
         if (Yii::$app->request->isPost) {
             $formData = Yii::$app->request->post('ApplicationsForm');
-
+            $application->company_id = $formData['companyId'];
+            $application->save();
             if ($formModel->load(Yii::$app->request->post()) && $formModel->validate()) {
                 if (ApplicationValue::loadFields($formData['fields'], $application->id, $existingValues)) {
                     if ($formData['sendB24']) {
@@ -108,7 +137,9 @@ class ApplicationController extends BaseController
         return $this->render('update', [
             'sections' => $sections,
             'formModel' => $formModel,
-            'type' => $appType
+            'type' => $appType,
+            'companies' => $userCompanies,
+            'noUpdate' => $application->status == 'send'
         ]);
     }
 
@@ -148,83 +179,34 @@ class ApplicationController extends BaseController
                     if ($fieldValue->field->multi) {
                         $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = json_decode($fieldValue->value, 1);
                     } else {
-                        $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = $fieldValue->value;
+                        if (in_array($fieldValue->field->name, ['PHONE', 'EMAIL'])) {
+                            $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = [
+                                ['VALUE' => $fieldValue->value, 'VALUE_TYPE' => 'WORK']
+                            ];
+                        } else {
+                            $data[$fieldValue->field->b24entity]['fields'][$fieldValue->field->name] = $fieldValue->value;
+                        }
                     }
                     break;
             }
         }
 
-        $bitrixDealUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.deal.add';
-        $bitrixContactUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.contact.add';
-        $bitrixCompanyUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.company.add';
         $data['deal']['fields']['CATEGORY_ID'] = $application->contest->typeB24Id;
 
-        if (isset( $data['contact'])){
-            $responseContact = $this->sendRequest($bitrixContactUrl, $data['contact']);
-            $data['deal']['fields']['CONTACT_ID'] = $responseContact['result'];
-        }
-        if (isset( $data['contact'])) {
-            $responseCompany = $this->sendRequest($bitrixCompanyUrl, $data['company']);
-            $data['deal']['fields']['COMPANY_ID'] = $responseCompany['result'];
-        }
+        $b24 = new B24Data();
+        $data['deal']['fields']['CONTACT_ID'] = Yii::$app->user->identity->b24Id ?? $b24->checkContact($data['contact']);
+        $data['deal']['fields']['COMPANY_ID'] = $application->company->b24Id ?? $b24->checkCompany($data['company'], $existingValues, $application);
 
-        
-         $response = $this->sendRequest($bitrixDealUrl, $data['deal']);
+        $response = $b24->sendRequest('new-deal', $data['deal']);
 
         if (isset($response['result'])) {
-            return 'Сделка успешно создана в Битрикс24.';
+            $application->status = 'send';
+            $application->save();
+            return $this->redirect(['application/index']);
         } else {
             $responseP = print_r($response, 1);
             return 'Ошибка при создании сделки: ' . $responseP;
         }
-    }
-    public function actionCreateBitrixOld()
-    {
-
-        $model = new BitrixForm();
-
-        if (Yii::$app->request->isPost) {
-            $model->load(Yii::$app->request->post());
-            $model->uf_crm_deal_1691729934958 = UploadedFile::getInstances($model, 'uf_crm_deal_1691729934958');
-
-            if ($model->validate()) {
-                // Создаем сделку в Битрикс24
-                $bitrixUrl = 'https://historyrussia.bitrix24.ru/rest/100/wmqfhmjhyn27avso/crm.deal.add';
-                $data = [
-                    'fields' => [
-                        'TITLE' => $model->title,
-                        'CATEGORY_ID' => $model->category_id,
-                        'uf_crm_deal_1690807644497' => $model->uf_crm_deal_1690807644497,
-                    ],
-                ];
-
-                if (!empty($model->uf_crm_deal_1691729934958)) {
-                    $filesArray = [];
-                    foreach ($model->uf_crm_deal_1691729934958 as $file) {
-                        $filesArray[] = [
-                            "fileData" => [
-                                $file->name,
-                                base64_encode(file_get_contents($file->tempName))
-                            ]
-                        ];
-                    }
-                    $data['fields']['UF_CRM_DEAL_1691729934958'] = $filesArray;
-                }
-
-                $response = $this->sendRequest($bitrixUrl, $data);
-
-                if (isset($response['result'])) {
-                    Yii::$app->session->setFlash('success', 'Сделка успешно создана в Битрикс24.');
-                    return $this->refresh();
-                } else {
-                    Yii::$app->session->setFlash('error', 'Ошибка при создании сделки: ' . json_encode($response));
-                }
-            }
-        }
-
-        return $this->render('create-bitrix', [
-            'model' => $model,
-        ]);
     }
 
     public function actionUpload()
@@ -282,16 +264,25 @@ class ApplicationController extends BaseController
     }
 
 
-    private function sendRequest($url, $data)
+    public function actionGetCompany()
     {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return json_decode($response, true);
-    }
 
+        $b24 = new B24Data();
+        $company = Companies::findOne(Yii::$app->request->post('id'));
+        return $b24->getCompanyData($company->b24Id);
+    }
+    /**
+     * Deletes an existing Applications model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param int $id ID
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionDelete($id)
+    {
+        $model = Applications::findOne(['id' => $id, 'user_id' => Yii::$app->user->id]);
+        $model->delete();
+
+        return $this->redirect(['index']);
+    }
 }

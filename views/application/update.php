@@ -5,6 +5,8 @@
 /** @var app\models\ApplicationsForm $formModel */
 /** @var app\models\Sections[] $sections */
 /** @var app\models\Contests $type */
+/** @var array $companies */
+/** @var bool $noUpdate */
 
 $this->title = 'Редактирование заявки "' . $type->name . '"';
 
@@ -14,7 +16,9 @@ $this->title = 'Редактирование заявки "' . $type->name . '"'
 echo $this->render('form', [
     'sections' => $sections,
     'formModel' => $formModel,
-    'type' => 'update'
+    'type' => 'update',
+    'companies' => $companies,
+    'noUpdate' => $noUpdate
 ]);
 ?>
 

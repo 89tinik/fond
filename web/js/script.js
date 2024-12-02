@@ -78,8 +78,29 @@ function removeFile(inputId, index) {
 }
 
 function saveDraft(sendB24) {
-    if (sendB24){
-        $('#applicationsform-sendb24').val('1');
+    if (sendB24) {
+        let isValid = true;
+        $('#application-form :input').removeClass('is-invalid');
+        $('#application-form input.required-b24').each(function () {
+
+            const value = $(this).val();
+            const isEmpty = (this.type !== 'file' && value === '') || value === null || (this.type === 'number' && isNaN(value));
+
+            if (isEmpty ||
+                ($(this).attr('type') === 'file' &&
+                    ($(this).siblings('.wrapper-uploaded').children('.file-item').length === 0 &&
+                        $(this).siblings('.wrapper-no-loaded').children('.file-item').length === 0))) {
+                $(this).addClass('is-invalid'); // Добавляем класс для подсветки
+                isValid = false;
+            }
+        });
+
+        if (isValid) {
+            $('#applicationsform-sendb24').val('1');
+        } else {
+            $('#form-navigation button').eq($('#application-form input.is-invalid:first').closest('.form-section').attr('section-number')).trigger('click');
+            return false;
+        }
     }
     Cookies.set('tab', $('#form-navigation .active').index());
     const formData = new FormData();
@@ -186,7 +207,72 @@ function removeUploadedFile(button, idx, app, field) {
     });
 }
 
-if (Cookies.get('tab')) {
-    $('#form-navigation button').eq(Cookies.get('tab')).trigger('click');
-    Cookies.remove('tab');
-}
+$(function () {
+    if (Cookies.get('tab')) {
+        $('#form-navigation button').eq(Cookies.get('tab')).trigger('click');
+        Cookies.remove('tab');
+    }
+
+    $('#applicationsform-companyid').on('change', function () {
+        const companyId = $(this).val();
+        if (companyId !== '') {
+            $.ajax({
+                url: '/application/get-company',
+                type: 'POST',
+                data: {
+                    id: companyId
+                },
+                success: function (response) {
+                    let data;
+                    try {
+                        data = typeof response === 'string' ? JSON.parse(response) : response;
+                        if (typeof data.error === 'string') {
+                            console.log('Ошибка :' + response);
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Ошибка парсинга JSON:', error);
+                        return;
+                    }
+
+                    $.each(data, function (key, value) {
+                        const inputField = $(`#applicationsform-fields-${key}`);
+                        if (inputField.length) {
+                            if (typeof value === 'object' && value !== null) {
+                                const inputsContainer = inputField.closest('.wrapper-multi');
+                                const addButton = inputsContainer.next('button');
+                                let firstIteration = true;
+                                inputsContainer.children(':not(:first-child)').remove();
+                                $.each(value, function (k, val) {
+                                    if (typeof val === 'object' && val !== null) {
+                                        if (typeof val.VALUE === 'string') {
+                                            val = val.VALUE;
+                                        }
+                                    }
+                                    if (firstIteration) {
+                                        inputField.val(val);
+                                        firstIteration = false;
+                                    } else {
+                                        addButton.trigger('click');
+                                        inputsContainer.children('input:last').val(val);
+                                    }
+                                });
+                            } else {
+                                inputField.val(value);
+                            }
+                        }
+                    });
+
+                    $('#application-form .company-field').attr('readonly', 'readonly').removeClass('required-b24');
+                    console.log('Данные успешно обработаны:', data);
+                },
+                error: function (xhr) {
+                    console.error(`Ошибка: ${xhr.status} ${xhr.statusText}`);
+                }
+            });
+        } else {
+            $('#application-form .company-field').removeAttr('readonly').addClass('required-b24').val('');
+        }
+
+    });
+});

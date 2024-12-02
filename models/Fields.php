@@ -79,4 +79,17 @@ class Fields extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Sections::class, ['id' => 'section_id']);
     }
+
+    /**
+     * @return array
+     */
+    public static function getCompanyFieldsList(){
+        $companyFields = self::find()
+            ->select(['id', 'name'])
+            ->where(['b24Entity' => 'company'])
+            ->indexBy('id')
+            ->asArray()
+            ->all();
+        return array_column($companyFields, 'id', 'name');
+    }
 }

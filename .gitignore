@@ -37,3 +37,6 @@ tests/_support/_generated
 
 #upload files
 /web/files
+
+#env
+/.env

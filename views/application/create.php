@@ -8,6 +8,7 @@ use yii\bootstrap5\Html;
 /** @var yii\web\View $this */
 /** @var app\models\ApplicationsForm $formModel */
 /** @var app\models\Sections[] $sections */
+/** @var array $companies */
 
 
 $this->title = 'Новая заявка "' . $type->name . '"';
@@ -19,6 +20,8 @@ $this->title = 'Новая заявка "' . $type->name . '"';
 echo $this->render('form', [
     'sections' => $sections,
     'formModel' => $formModel,
-    'type' => 'new'
+    'type' => 'new',
+    'companies' => $companies,
+    'noUpdate' => false
 ]);
 ?>
