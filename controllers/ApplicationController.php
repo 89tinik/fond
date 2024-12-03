@@ -70,8 +70,11 @@ class ApplicationController extends BaseController
 
             if ($formModel->load(Yii::$app->request->post()) && $formModel->validate()) {
                 $application = new Applications($appType->id);
+                if (array_key_exists('companyId', $formData)) {
                     $application->company_id = $formData['companyId'];
+                }
                 $application->save();
+
                 ApplicationValue::loadFields($formData['fields'], $application->id);
 
                 //Yii::$app->session->setFlash('success', 'Форма успешно отправлена!');
@@ -106,7 +109,7 @@ class ApplicationController extends BaseController
             ->orderBy(['position' => SORT_ASC])
             ->all();
 
-        $formModel = new ApplicationsForm($application->contest_id,$application->company_id);
+        $formModel = new ApplicationsForm($application->contest_id, $application->company_id);
 
         $existingValues = ApplicationValue::find()
             ->where(['application_id' => $application->id])
@@ -121,7 +124,9 @@ class ApplicationController extends BaseController
 
         if (Yii::$app->request->isPost) {
             $formData = Yii::$app->request->post('ApplicationsForm');
-            $application->company_id = $formData['companyId'];
+            if (array_key_exists('companyId', $formData)) {
+                $application->company_id = $formData['companyId'];
+            }
             $application->save();
             if ($formModel->load(Yii::$app->request->post()) && $formModel->validate()) {
                 if (ApplicationValue::loadFields($formData['fields'], $application->id, $existingValues)) {
@@ -271,6 +276,7 @@ class ApplicationController extends BaseController
         $company = Companies::findOne(Yii::$app->request->post('id'));
         return $b24->getCompanyData($company->b24Id);
     }
+
     /**
      * Deletes an existing Applications model.
      * If deletion is successful, the browser will be redirected to the 'index' page.

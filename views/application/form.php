@@ -75,8 +75,8 @@ foreach ($sections as $section) {
                 break;
             default:
                 $inputClass .= ' form-control mb-2';
-                $attrArray ['placeholder'] = $fieldLabel;
                 if ($field->multi == 1) {
+                    $attrArray ['placeholder'] = $fieldLabel;
                     $valueArr = json_decode($fieldValue, true) ?? [''];
                     if ($field->b24entity == 'company') {
                         if ($formModel->companyId) {
