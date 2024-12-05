@@ -26,6 +26,7 @@ $menuItems = [
     ['label' => 'Личные данные', 'url' => ['site/lk']],
     ['label' => 'Мои заявки', 'url' => ['application/index']],
     ['label' => 'Контакты', 'url' => ['site/contact']],
+    ['label' => 'Выход', 'url' => ['login/logout']],
 ];
 ?>
 <?php $this->beginPage() ?>
