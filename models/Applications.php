@@ -62,11 +62,11 @@ class Applications extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'contest_id' => 'Contest ID',
-            'user_id' => 'User ID',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'contest_id' => 'Тема',
+            'user_id' => 'Пользователь',
+            'status' => 'Статус',
+            'created_at' => 'Создано',
+            'updated_at' => 'Обновлено',
         ];
     }
 
@@ -98,5 +98,15 @@ class Applications extends \yii\db\ActiveRecord
     public function getCompany()
     {
         return $this->hasOne(Companies::class, ['id' => 'company_id']);
+    }
+
+    /**
+     * Gets query for [[User]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getUser()
+    {
+        return $this->hasOne(User::class, ['id' => 'user_id']);
     }
 }

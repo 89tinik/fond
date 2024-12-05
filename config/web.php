@@ -57,7 +57,14 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'admin/<action:(login|update|as-user|delete|index|logout)>'=>'admin/default/<action>',
             ],
+        ],
+    ],
+    'modules' => [
+        'admin' => [
+            'class' => 'app\modules\admin\Module',
+            'layout' => 'admin',
         ],
     ],
     'params' => $params,

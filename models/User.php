@@ -37,15 +37,15 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             'id' => 'ID',
-            'firstname' => 'Firstname',
-            'surname' => 'Surname',
-            'lastname' => 'Lastname',
+            'firstname' => 'Имя',
+            'surname' => 'Отчество',
+            'lastname' => 'Фамилия',
             'auth_key' => 'Auth Key',
             'password_hash' => 'Password Hash',
             'email' => 'Email',
-            'phone' => 'Phone',
-            'created_at' => 'Created At',
-            'post' => 'Position',
+            'phone' => 'Телефон',
+            'created_at' => 'Создан',
+            'post' => 'Должность',
             'b24Id' => 'Id B24',
         ];
     }
