@@ -3,6 +3,7 @@
 namespace app\modules\admin\controllers;
 
 
+use app\models\Applications;
 use app\models\ApplicationsSearch;
 use Yii;
 use app\models\User;
@@ -86,6 +87,27 @@ class DefaultController extends Controller
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
+    }
+
+    /**
+     * Displays a single Applications model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionView($id)
+    {
+        return $this->render('view', [
+            'model' => $this->findModel($id),
+        ]);
+    }
+    protected function findModel($id)
+    {
+        if (($model = Applications::findOne(['id' => $id])) !== null) {
+            return $model;
+        }
+
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 
     public function actionLogout()
