@@ -5,6 +5,7 @@ namespace app\controllers;
 
 
 use app\models\LoginForm;
+use app\models\ResetPasswordForm;
 use app\models\User;
 use app\models\RegistrationForm;
 use yii\filters\AccessControl;
@@ -60,10 +61,44 @@ class LoginController extends Controller
             return $this->goHome();
         }
 
-        //$registerForm = $this->generateForm(['error' => 'Ошибка восстановления пароля!!!']);
-        $registerForm = $this->generateFormNew('repass');
+        $model = new ResetPasswordForm();
 
-        return $this->render('repassword', compact('registerForm'));
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $email = $model->email;
+
+            // Поиск пользователя по email
+            $user = User::findOne(['email' => $email]);
+
+            if ($user !== null) {
+                // Генерация случайного пароля
+                $newPassword = Yii::$app->security->generateRandomString(6);
+
+                // Установка нового пароля
+                $user->password_hash = Yii::$app->security->generatePasswordHash($newPassword);
+
+                if ($user->save()) {
+                    // Отправка email с новым паролем
+                    Yii::$app->mailer->compose()
+                        ->setTo($email)
+                        ->setFrom('no-reply@fond.com')
+                        ->setSubject('Ваш новый пароль')
+                        ->setTextBody("Ваш новый пароль: $newPassword")
+                        ->send();
+
+                    Yii::$app->session->setFlash('success', 'Пароль успешно сброшен и отправлен на email.');
+                    return $this->redirect(['/']);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Не удалось сохранить новый пароль. Попробуйте снова.');
+                }
+            } else {
+                Yii::$app->session->setFlash('error', 'Пользователь с таким email не найден.');
+            }
+        }
+
+        return $this->render('repassword', [
+            'model' => $model,
+        ]);
+
     }
 
     public function actionLogout()

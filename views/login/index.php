@@ -11,6 +11,17 @@ use yii\widgets\MaskedInput;
 
 $this->title = 'Авторизация';
 ?>
+<?php if (Yii::$app->session->hasFlash('success')): ?>
+    <div class="alert alert-success">
+        <?= Yii::$app->session->getFlash('success') ?>
+    </div>
+<?php endif; ?>
+
+<?php if (Yii::$app->session->hasFlash('error')): ?>
+    <div class="alert alert-danger">
+        <?= Yii::$app->session->getFlash('error') ?>
+    </div>
+<?php endif; ?>
 
 <?php $form = ActiveForm::begin([
     'id' => 'login-form',
@@ -29,7 +40,7 @@ $this->title = 'Авторизация';
 <?= Html::submitButton('Войти', ['class' => 'btn btn-primary w-100', 'name' => 'login-button']) ?>
 
 <div class="mt-3 text-center">
-    <?= Html::a('Зарегистрироваться', ['login/registration']); ?>
+    <?= Html::a('Зарегистрироваться', ['login/registration']); ?> | <?= Html::a('Забыли пароль', ['login/repassword']); ?>
 </div>
 
 <?php ActiveForm::end(); ?>
